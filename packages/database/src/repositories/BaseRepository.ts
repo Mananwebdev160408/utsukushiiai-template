@@ -1,10 +1,9 @@
-import { User, IUser } from "../models/User";
-import { Document } from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 
 export class BaseRepository<T extends Document> {
-  protected model: mongoose.Model<T>;
+  protected model: Model<T>;
 
-  constructor(model: mongoose.Model<T>) {
+  constructor(model: Model<T>) {
     this.model = model;
   }
 
@@ -12,7 +11,7 @@ export class BaseRepository<T extends Document> {
     return this.model.findById(id);
   }
 
-  async create(data: any): Promise<T> {
+  async create(data: any): Promise<T | any> {
     return this.model.create(data);
   }
 
@@ -25,5 +24,3 @@ export class BaseRepository<T extends Document> {
     return !!result;
   }
 }
-
-import mongoose from "mongoose";

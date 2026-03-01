@@ -32,7 +32,7 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    await connectDB();
+    await connectDB(config.mongodb.uri);
 
     app.listen(config.port, () => {
       logger.info(

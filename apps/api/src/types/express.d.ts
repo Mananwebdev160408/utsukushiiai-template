@@ -1,9 +1,9 @@
-import { IUser } from "../models/User";
+import { TokenPayload } from "../utils/jwt";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser;
+      user?: TokenPayload;
       requestId?: string;
     }
   }
