@@ -1,10 +1,12 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+/** @type {import('jest').Config} */
 module.exports = {
-  preset: "ts-jest",
   testEnvironment: "node",
   testMatch: ["**/**/*.test.ts"],
   verbose: true,
   forceExit: true,
   clearMocks: true,
   moduleFileExtensions: ["js", "ts"],
+  transform: {
+    "^.+\\.ts$": "@swc/jest",
+  },
 };

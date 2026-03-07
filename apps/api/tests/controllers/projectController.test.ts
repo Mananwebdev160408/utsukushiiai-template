@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { projectService } from "../../src/services";
 import * as projectController from "../../src/controllers/projectController";
 import { HTTP_STATUS } from "@utsukushii/shared/src/utils/constants";
-import { User } from "@utsukushii/shared/src/types/auth";
+import { TokenPayload } from "../../src/utils/jwt";
 
 jest.mock("../../src/services");
 
@@ -11,10 +11,10 @@ describe("Project Controller", () => {
   let mockRes: Partial<Response>;
   let mockNext: jest.Mock;
 
-  const mockUser: User = {
-    id: "usr_123",
+  const mockUser: TokenPayload = {
+    userId: "usr_123",
     email: "test@example.com",
-    name: "Test User",
+    role: "user",
   };
 
   beforeEach(() => {
@@ -32,41 +32,46 @@ describe("Project Controller", () => {
     jest.clearAllMocks();
   });
 
-  describe("getProjects", () => {
+  describe("list projects", () => {
     it("should return projects for the user", async () => {
-      const mockProjects = [{ id: "prj_1", title: "Test Project" }];
-      (projectService.getProjectsByUserId as jest.Mock).mockResolvedValueOnce({
-        data: mockProjects,
+      const mockProjects = {
+        data: [{ id: "prj_1", title: "Test Project" }],
         total: 1,
         page: 1,
         limit: 10,
         pages: 1,
-      });
+      };
 
-      await projectController.getProjects(
+      (projectService.listProjects as jest.Mock).mockResolvedValueOnce(
+        mockProjects,
+      );
+
+      await projectController.list(
         mockReq as Request,
         mockRes as Response,
         mockNext,
       );
 
-      expect(projectService.getProjectsByUserId).toHaveBeenCalledWith(
-        mockUser.id,
-        1,
-        20, // default limit
+      expect(projectService.listProjects).toHaveBeenCalledWith(
+        mockUser.userId,
+        {
+          limit: undefined,
+          offset: undefined,
+          search: undefined,
+        },
       );
       expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.OK);
-      expect(mockRes.json).toHaveBeenCalledWith(
-        expect.objectContaining({ status: "success", data: mockProjects }),
-      );
+      expect(mockRes.json).toHaveBeenCalledWith({
+        status: "success",
+        data: mockProjects,
+      });
     });
 
     it("should pass errors to next middleware", async () => {
       const error = new Error("Database error");
-      (projectService.getProjectsByUserId as jest.Mock).mockRejectedValueOnce(
-        error,
-      );
+      (projectService.listProjects as jest.Mock).mockRejectedValueOnce(error);
 
-      await projectController.getProjects(
+      await projectController.list(
         mockReq as Request,
         mockRes as Response,
         mockNext,
@@ -82,28 +87,30 @@ describe("Project Controller", () => {
       const newProject = {
         id: "prj_2",
         title: "New Manga",
-        userId: mockUser.id,
+        userId: mockUser.userId,
       };
 
       (projectService.createProject as jest.Mock).mockResolvedValueOnce(
         newProject,
       );
 
-      await projectController.createProject(
+      await projectController.create(
         mockReq as Request,
         mockRes as Response,
         mockNext,
       );
 
-      expect(projectService.createProject).toHaveBeenCalledWith({
-        title: "New Manga",
-        type: "manga",
-        userId: mockUser.id,
-      });
+      expect(projectService.createProject).toHaveBeenCalledWith(
+        mockUser.userId,
+        {
+          title: "New Manga",
+          type: "manga",
+        },
+      );
       expect(mockRes.status).toHaveBeenCalledWith(HTTP_STATUS.CREATED);
       expect(mockRes.json).toHaveBeenCalledWith({
         status: "success",
-        data: newProject,
+        data: { project: newProject },
       });
     });
   });
