@@ -3,6 +3,10 @@
   "files": [],
   "references": [
     { "path": "apps/api" },
-    { "path": "packages/cache" }
+    { "path": "apps/web" },
+    { "path": "packages/cache" },
+    { "path": "packages/shared" },
+    { "path": "packages/database" },
+    { "path": "packages/storage" }
   ]
 }

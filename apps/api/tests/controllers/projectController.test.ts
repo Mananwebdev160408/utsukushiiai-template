@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { projectService } from "../../src/services";
 import * as projectController from "../../src/controllers/projectController";
-import { HTTP_STATUS } from "@utsukushii/shared/src/utils/constants";
+import { HTTP_STATUS } from "../../src/constants";
 import { TokenPayload } from "../../src/utils/jwt";
 
 jest.mock("../../src/services");

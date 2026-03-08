@@ -1,17 +1,17 @@
 import request from "supertest";
 import mongoose from "mongoose";
 import app from "../../src/app";
-import { clearDatabase, connectDatabase, disconnectDatabase } from "../helpers";
+import { connectTestDB, clearTestDB, closeTestDB } from "../helpers";
 
 describe("Auth Integration Tests", () => {
   beforeAll(async () => {
     // In a real test suite, you'd use an in-memory db or a specific test db
-    // await connectDatabase();
+    // await connectTestDB();
   });
 
   afterAll(async () => {
-    // await clearDatabase();
-    // await disconnectDatabase();
+    // await clearTestDB();
+    // await closeTestDB();
   });
 
   describe("POST /api/auth/register", () => {

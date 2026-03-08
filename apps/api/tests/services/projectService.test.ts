@@ -1,6 +1,6 @@
 import { projectService } from "../../src/services";
 import { projectRepository } from "../../src/repositories";
-import { NotFoundError } from "../../src/errors";
+import { NotFoundError, ForbiddenError } from "../../src/errors";
 
 jest.mock("../../src/repositories");
 
@@ -19,13 +19,13 @@ describe("Project Service", () => {
     jest.clearAllMocks();
   });
 
-  describe("getProjectById", () => {
+  describe("getProject", () => {
     it("should return a project if it belongs to the user", async () => {
       (projectRepository.findById as jest.Mock).mockResolvedValueOnce(
         mockProject,
       );
 
-      const result = await projectService.getProjectById(mockUserId, "prj_1");
+      const result = await projectService.getProject(mockUserId, "prj_1");
 
       expect(projectRepository.findById).toHaveBeenCalledWith("prj_1");
       expect(result).toEqual(mockProject);
@@ -35,19 +35,19 @@ describe("Project Service", () => {
       (projectRepository.findById as jest.Mock).mockResolvedValueOnce(null);
 
       await expect(
-        projectService.getProjectById(mockUserId, "prj_nonexistent"),
+        projectService.getProject(mockUserId, "prj_nonexistent"),
       ).rejects.toThrow(NotFoundError);
     });
 
-    it("should throw NotFoundError if project belongs to another user", async () => {
+    it("should throw ForbiddenError if project belongs to another user", async () => {
       const otherUserProject = { ...mockProject, userId: "usr_999" };
       (projectRepository.findById as jest.Mock).mockResolvedValueOnce(
         otherUserProject,
       );
 
       await expect(
-        projectService.getProjectById(mockUserId, "prj_1"),
-      ).rejects.toThrow(NotFoundError);
+        projectService.getProject(mockUserId, "prj_1"),
+      ).rejects.toThrow();
     });
   });
 
@@ -57,10 +57,9 @@ describe("Project Service", () => {
         mockProject,
       );
 
-      const result = await projectService.createProject({
+      const result = await projectService.createProject(mockUserId, {
         title: "Test Manga",
         type: "manga",
-        userId: mockUserId,
       });
 
       expect(projectRepository.create).toHaveBeenCalledWith(

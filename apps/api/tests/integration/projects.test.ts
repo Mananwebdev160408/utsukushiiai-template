@@ -1,12 +1,17 @@
 import request from "supertest";
 import app from "../../src/app";
-import { signToken } from "../../src/utils/jwt";
+import { signAccessToken, TokenPayload } from "../../src/utils/jwt";
 
 describe("Projects Integration Tests", () => {
   let userToken: string;
 
   beforeAll(() => {
-    userToken = signToken("usr_test123");
+    const payload: TokenPayload = {
+      userId: "usr_test123",
+      email: "test@example.com",
+      role: "user",
+    };
+    userToken = signAccessToken(payload);
   });
 
   describe("GET /api/projects", () => {
