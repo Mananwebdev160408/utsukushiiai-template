@@ -40,7 +40,7 @@ export default function SettingsHubPage() {
             <div className="flex items-center gap-6 mb-10 border-b-4 border-black dark:border-white pb-6">
               <div
                 className="w-20 h-20 border-4 border-black dark:border-white bg-cover bg-center grayscale hover:grayscale-0 transition-all shadow-hard-xs"
-                style={{ backgroundImage: `url('${user?.avatar || '/images/avatar.png'}')` }}
+                style={{ backgroundImage: `url('${user?.avatar || '/images/logo-Photoroom.png'}')` }}
               ></div>
               <div>
                 <h2 className="font-display font-black text-xl uppercase italic leading-none text-white">
@@ -274,7 +274,7 @@ export default function SettingsHubPage() {
 
       <div className="text-center py-12">
         <p className="font-mono text-[10px] text-white/10 uppercase tracking-[0.5em]">
-          ID: USER_ADDR_0x8829_XJA // BUILD_2.4.0_STABLE
+          ID: {user?.id || "N/A"} // NODE: ACTIVE
         </p>
       </div>
     </main>
@@ -296,6 +296,7 @@ function InputGroup({
         {label}
       </span>
       <input
+        key={value}
         type={type}
         defaultValue={value}
         className="w-full bg-black border-4 border-white/10 p-5 font-mono text-sm text-white focus:border-primary outline-none focus:shadow-neo-sm transition-all uppercase"

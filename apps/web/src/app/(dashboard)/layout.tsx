@@ -81,7 +81,7 @@ export default function DashboardLayout({
                 >
                   <div
                     className="w-full h-full bg-cover bg-center grayscale hover:grayscale-0 transition-opacity"
-                    style={{ backgroundImage: `url('${user?.avatar || '/images/avatar.png'}')` }}
+                    style={{ backgroundImage: `url('${user?.avatar || '/images/logo-Photoroom.png'}')` }}
                   />
                 </Link>
 

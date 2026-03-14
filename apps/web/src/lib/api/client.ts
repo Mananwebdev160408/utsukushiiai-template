@@ -83,14 +83,18 @@ const getCharacterAvatar = (seed: string) => {
   return ANIME_AVATARS[hash % ANIME_AVATARS.length];
 };
 
-const mapUser = (user: any) => ({
-  id: user._id || user.id,
-  name: user.displayName || user.name || user.username,
-  email: user.email,
-  avatar: user.avatarUrl || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.displayName || user.name || user.username || 'user'}`,
-  tier: 'pro' as const,
-  createdAt: user.createdAt || new Date().toISOString(),
-});
+const mapUser = (user: any) => {
+  if (!user) return null;
+  const name = user.displayName || user.name || user.username || (user.email ? user.email.split('@')[0] : 'Utsukushii User');
+  return {
+    id: user._id || user.id,
+    name,
+    email: user.email,
+    avatar: user.avatarUrl || getCharacterAvatar(name),
+    tier: 'pro' as const,
+    createdAt: user.createdAt || new Date().toISOString(),
+  };
+};
 
 const mapProjectStatus = (status?: string) => {
   switch (status) {
@@ -225,9 +229,10 @@ export const api = {
     },
     me: async () => {
       const response = await request<any>('/v1/auth/me');
+      const userData = response.data?.user || response.data;
       return {
         success: true,
-        data: mapUser(response.data?.user),
+        data: mapUser(userData),
       };
     },
     logout: async () => {
