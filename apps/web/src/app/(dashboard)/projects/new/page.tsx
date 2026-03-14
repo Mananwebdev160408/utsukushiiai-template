@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Zap,
   ArrowLeft,
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils/cn";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function NewProjectPage() {
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [projectName, setProjectName] = useState("CYBERPUNK_MISSION_01");
@@ -38,8 +39,23 @@ export default function NewProjectPage() {
     "Finalizing Project Database...",
   ];
 
+  const ensureProject = useCallback(async () => {
+    if (projectId) return projectId;
+
+    const res = await api.projects.create({
+      title: projectName,
+      aspectRatio: "9:16",
+    });
+
+    if (!res.success || !res.data) {
+      throw new Error("Failed to initialize project");
+    }
+
+    setProjectId(res.data.id);
+    return res.data.id;
+  }, [projectId, projectName]);
+
   const handleStartForge = async () => {
-    setLoading(true);
     setLoading(true);
     setStep(5);
 
@@ -53,12 +69,12 @@ export default function NewProjectPage() {
     }
 
     try {
-      const res = await api.projects.create({
+      const id = await ensureProject();
+      const res = await api.projects.update(id, {
         title: projectName,
-        status: "processing",
       });
       if (res.success) {
-        window.location.href = `/projects/${res.data.id}`;
+        window.location.href = `/projects/${id}`;
       }
     } catch (err) {
       console.error("CREATE_PROJECT_ERROR:", err);
@@ -158,6 +174,8 @@ export default function NewProjectPage() {
                 </div>
                 <div className="border-6 border-dashed border-white/10 p-8 md:p-12 hover:border-primary transition-all">
                   <MangaUploader
+                    projectId={projectId}
+                    ensureProject={ensureProject}
                     onUploadComplete={() => setMangaUploaded(true)}
                   />
                 </div>
@@ -186,6 +204,8 @@ export default function NewProjectPage() {
                 </div>
                 <div className="border-6 border-dashed border-white/10 p-8 md:p-12 hover:border-secondary transition-all">
                   <AudioUploader
+                    projectId={projectId}
+                    ensureProject={ensureProject}
                     onUploadComplete={() => setAudioUploaded(true)}
                   />
                 </div>

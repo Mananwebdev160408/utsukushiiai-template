@@ -38,7 +38,7 @@ export const config = {
 
   // ML Worker
   mlWorker: {
-    url: process.env.ML_WORKER_URL || "http://localhost:8000",
+    url: process.env.ML_WORKER_URL || "http://localhost:8001",
   },
 
   // CORS

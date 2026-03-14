@@ -14,6 +14,8 @@ import {
 
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
+import { useAuthStore } from "@/stores/authStore";
+import { useEffect } from "react";
 
 export default function DashboardLayout({
   children,
@@ -21,6 +23,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, fetchMe } = useAuthStore();
+
+  useEffect(() => {
+    fetchMe();
+  }, [fetchMe]);
 
   // Immersive studio pages where navbar should be hidden
   // Matches /projects/[id] (Video Editor) and /projects/[id]/edit (Style Maker)
@@ -73,8 +80,8 @@ export default function DashboardLayout({
                   className="w-10 h-10 border-4 border-black dark:border-white bg-gray-300 dark:bg-gray-700 overflow-hidden shadow-hard-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
                 >
                   <div
-                    className="w-full h-full bg-cover bg-center"
-                    style={{ backgroundImage: "url('/images/avatar.png')" }}
+                    className="w-full h-full bg-cover bg-center grayscale hover:grayscale-0 transition-opacity"
+                    style={{ backgroundImage: `url('${user?.avatar || '/images/avatar.png'}')` }}
                   />
                 </Link>
 

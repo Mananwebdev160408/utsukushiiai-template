@@ -1,6 +1,7 @@
 import { panelRepository } from "../repositories/panelRepository";
 import { projectService } from "./projectService";
 import { NotFoundError } from "../errors";
+import { generateId } from "../utils";
 
 export class PanelService {
   async createPanel(userId: string, projectId: string, data: any) {
@@ -8,6 +9,7 @@ export class PanelService {
     await projectService.getProject(userId, projectId);
 
     return panelRepository.create({
+      _id: generateId("pnl"),
       projectId,
       ...data,
     });

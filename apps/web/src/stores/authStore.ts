@@ -16,6 +16,7 @@ interface AuthState {
   logout: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  fetchMe: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
 }
 
@@ -36,6 +37,18 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, tokens: null, isAuthenticated: false, error: null }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
+      fetchMe: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const { api } = await import('@/lib/api/client');
+          const res = await api.auth.me();
+          if (res.success && res.data) {
+            set({ user: res.data, isAuthenticated: true, isLoading: false });
+          }
+        } catch (error: any) {
+          set({ error: error.message, isLoading: false });
+        }
+      },
       updateUser: (updates) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...updates } : null,

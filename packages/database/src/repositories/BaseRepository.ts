@@ -16,7 +16,9 @@ export class BaseRepository<T extends Document> {
   }
 
   async update(id: string, data: any): Promise<T | null> {
-    return this.model.findByIdAndUpdate(id, { $set: data }, { new: true });
+    const hasOperators = Object.keys(data || {}).some((key) => key.startsWith("$"));
+    const updateDoc = hasOperators ? data : { $set: data };
+    return this.model.findByIdAndUpdate(id, updateDoc, { new: true });
   }
 
   async delete(id: string): Promise<boolean> {

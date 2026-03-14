@@ -19,8 +19,12 @@ import { cn } from "@/lib/utils/cn";
 import { api } from "@/lib/api/client";
 
 export function AudioUploader({
+  projectId,
+  ensureProject,
   onUploadComplete,
 }: {
+  projectId?: string | null;
+  ensureProject?: () => Promise<string | null>;
   onUploadComplete?: () => void;
 }) {
   const [files, setFiles] = useState<
@@ -38,6 +42,11 @@ export function AudioUploader({
   const [isDragging, setIsDragging] = useState(false);
 
   const onUpload = async (file: File) => {
+    const activeProjectId = projectId || (await ensureProject?.());
+    if (!activeProjectId) {
+      throw new Error("Project initialization failed before audio upload");
+    }
+
     const newFile = {
       name: file.name,
       size: (file.size / 1024 / 1024).toFixed(1) + " MB",
@@ -49,7 +58,7 @@ export function AudioUploader({
     setFiles((prev) => [newFile, ...prev]);
 
     try {
-      const res = await api.assets.upload(file, "audio");
+      const res = await api.assets.upload(file, "audio", undefined, activeProjectId);
       if (res.success) {
         setFiles((prev) =>
           prev.map((f) =>
@@ -70,7 +79,7 @@ export function AudioUploader({
     setIsDragging(false);
     const droppedFiles = Array.from(e.dataTransfer.files);
     droppedFiles.forEach(onUpload);
-  }, []);
+  }, [projectId, ensureProject]);
 
   const handleManualUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

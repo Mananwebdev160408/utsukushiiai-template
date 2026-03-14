@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # External APIs
-    API_WEBHOOK_URL: str = "http://localhost:4000/api/webhooks/render"
+    API_WEBHOOK_URL: str = "http://localhost:4000/v1/webhooks/render"
 
     # Logging
     LOG_LEVEL: str = "INFO"

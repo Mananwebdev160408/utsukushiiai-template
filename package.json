@@ -4,6 +4,9 @@
   "description": "UtsukushiiAI Monorepo",
   "scripts": {
     "dev": "turbo run dev --parallel",
+    "dev:all": "npm run docker:up && turbo run dev --parallel",
+    "docker:up": "docker-compose up -d mongo redis",
+    "docker:down": "docker-compose down",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",

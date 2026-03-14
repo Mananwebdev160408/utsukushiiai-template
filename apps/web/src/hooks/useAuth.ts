@@ -29,8 +29,8 @@ export function useAuth() {
       const response = await api.auth.login(credentials);
       if (response.success && response.data) {
         storeLogin(response.data.user, {
-          accessToken: response.data.token,
-          refreshToken: response.data.token, // API should return refresh token separately
+          accessToken: response.data.accessToken || response.data.token,
+          refreshToken: response.data.refreshToken || response.data.token,
         });
         return true;
       }
@@ -51,8 +51,8 @@ export function useAuth() {
       const response = await api.auth.register(userData);
       if (response.success && response.data) {
         storeLogin(response.data.user, {
-          accessToken: response.data.token,
-          refreshToken: response.data.token,
+          accessToken: response.data.accessToken || response.data.token,
+          refreshToken: response.data.refreshToken || response.data.token,
         });
         return true;
       }

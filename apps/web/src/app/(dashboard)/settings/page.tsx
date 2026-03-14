@@ -15,8 +15,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
+import { useAuthStore } from "@/stores/authStore";
+import { useEffect } from "react";
+
 export default function SettingsHubPage() {
   const [activeTab, setActiveTab] = useState("Identity & Profile");
+  const { user, fetchMe, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    fetchMe();
+  }, [fetchMe]);
 
   const tabs = [
     { id: "personal", name: "Identity & Profile", icon: User },
@@ -32,15 +40,12 @@ export default function SettingsHubPage() {
             <div className="flex items-center gap-6 mb-10 border-b-4 border-black dark:border-white pb-6">
               <div
                 className="w-20 h-20 border-4 border-black dark:border-white bg-cover bg-center grayscale hover:grayscale-0 transition-all shadow-hard-xs"
-                style={{ backgroundImage: "url('/images/avatar.png')" }}
+                style={{ backgroundImage: `url('${user?.avatar || '/images/avatar.png'}')` }}
               ></div>
               <div>
                 <h2 className="font-display font-black text-xl uppercase italic leading-none text-white">
-                  Utsukushii User
+                  {user?.name || "Utsukushii User"}
                 </h2>
-                <span className="font-mono text-[10px] bg-primary text-black px-2 py-1 mt-2 inline-block font-black border-2 border-black uppercase italic shadow-[3px_3px_0px_#000]">
-                  PRO PLAN
-                </span>
               </div>
             </div>
 
@@ -103,7 +108,7 @@ export default function SettingsHubPage() {
                       Identity Core
                     </h2>
                     <p className="text-[10px] font-mono text-white/20 uppercase tracking-widest mt-2">
-                      UNIQUE_ID: UTSU_USR_774 // ROLE: ARCHITECT
+                      UNIQUE_ID: {user?.id || "N/A"} // NODE: ACTIVE
                     </p>
                   </div>
                   <User className="w-10 h-10 text-primary" />
@@ -112,11 +117,11 @@ export default function SettingsHubPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <InputGroup
                     label="System Handle"
-                    value="Utsukushii_User_01"
+                    value={user?.name || ""}
                   />
                   <InputGroup
                     label="Network Interface (Email)"
-                    value="creator@utsukushii.ai"
+                    value={user?.email || ""}
                     type="email"
                   />
                   <div className="md:col-span-2">
@@ -140,7 +145,7 @@ export default function SettingsHubPage() {
 
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-10 border-t-2 border-white/5">
                   <p className="font-mono text-[9px] text-white/20 uppercase tracking-widest text-center sm:text-left">
-                    LAST_LOGIN: 2024.05.12 // 14:02:55_UTC
+                    LAST_LOGIN: {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'} // {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}_UTC
                   </p>
                   <div className="flex gap-4 w-full sm:w-auto">
                     <button className="flex-1 bg-black text-white border-2 border-white/10 px-6 py-4 font-mono font-bold uppercase text-[10px] tracking-widest hover:border-white/40 transition-all">

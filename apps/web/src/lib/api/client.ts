@@ -5,146 +5,331 @@
 
 const DELAY = 800;
 
-const logger = (method: string, endpoint: string, data?: any) => {
-  console.log(
-    `%c[API ${method}] %c${endpoint}`,
-    "color: #C8FF00; font-weight: bold",
-    "color: white",
-    data || "",
+
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+type BackendResponse<T> = {
+  status: 'success' | 'error';
+  data?: T;
+  message?: string;
+  code?: string;
+};
+
+const getStoredAuth = () => {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = window.localStorage.getItem('utsukushii-auth');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getAccessToken = () => getStoredAuth()?.state?.tokens?.accessToken || null;
+
+const persistAuth = (user: any, tokens: { accessToken: string; refreshToken: string }) => {
+  if (typeof window === 'undefined') return;
+
+  window.localStorage.setItem(
+    'utsukushii-auth',
+    JSON.stringify({
+      state: {
+        user,
+        tokens,
+        isAuthenticated: true,
+      },
+      version: 0,
+    }),
   );
 };
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const clearAuth = () => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem('utsukushii-auth');
+};
+
+const request = async <T>(path: string, init?: RequestInit): Promise<BackendResponse<T>> => {
+  const token = getAccessToken();
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      ...(init?.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : {};
+
+  if (!response.ok) {
+    throw new Error(body?.message || `Request failed: ${response.status}`);
+  }
+
+  return body;
+};
+
+const ANIME_AVATARS = [
+  'https://i.pinimg.com/736x/8b/16/7a/8b167af653c2399dd93b952ad4874062.jpg', // Gojo
+  'https://i.pinimg.com/736x/2b/37/60/2b3760990426c6d05908e063806f477e.jpg', // Rengoku
+  'https://i.pinimg.com/736x/55/9b/6e/559b6e224e2cda31862cd2f2e519c5c9.jpg', // Ichigo
+  'https://i.pinimg.com/736x/77/3b/68/773b680589a8a705663738e4618e404b.jpg', // Luffy
+  'https://i.pinimg.com/736x/e4/1d/9b/e41d9b32af26f8d30e998a96677b102c.jpg', // Ken Kaneki
+];
+
+const getCharacterAvatar = (seed: string) => {
+  const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return ANIME_AVATARS[hash % ANIME_AVATARS.length];
+};
+
+const mapUser = (user: any) => ({
+  id: user._id || user.id,
+  name: user.displayName || user.name || user.username,
+  email: user.email,
+  avatar: user.avatarUrl || `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.displayName || user.name || user.username || 'user'}`,
+  tier: 'pro' as const,
+  createdAt: user.createdAt || new Date().toISOString(),
+});
+
+const mapProjectStatus = (status?: string) => {
+  switch (status) {
+    case 'ready':
+      return 'completed';
+    case 'draft':
+      return 'idle';
+    default:
+      return status || 'idle';
+  }
+};
+
+const parseResolution = (resolution?: string) => {
+  const [width, height] = (resolution || '1080x1920').split('x').map((value) => parseInt(value, 10));
+  return { width: width || 1080, height: height || 1920 };
+};
+
+const mapProject = (project: any) => {
+  const resolution = parseResolution(project?.settings?.resolution);
+  return {
+    id: project._id || project.id,
+    title: project.title,
+    description: project.description,
+    status: mapProjectStatus(project.status),
+    lastUpdated: project.updatedAt || project.createdAt || new Date().toISOString(),
+    createdAt: project.createdAt || new Date().toISOString(),
+    aspectRatio: project.aspectRatio,
+    image: project.mangaChapters?.[0]?.fileUrl,
+    mangaPages: (project.mangaChapters || []).map((chapter: any, index: number) => ({
+      id: chapter.id,
+      url: chapter.fileUrl,
+      filename: chapter.originalName,
+      width: chapter.width || resolution.width,
+      height: chapter.height || resolution.height,
+      pageNumber: chapter.chapterNumber || index + 1,
+    })),
+    audioInfo: project.audioInfo
+      ? {
+          id: project.audioInfo.id || `${project._id || project.id}_audio`,
+          url: project.audioInfo.fileUrl,
+          filename: project.audioInfo.originalName,
+          duration: project.audioInfo.duration || 0,
+          bpm: project.audioInfo.bpm,
+        }
+      : undefined,
+    settings: {
+      quality: project.settings?.quality || 'high',
+      fps: project.settings?.fps || 30,
+      width: resolution.width,
+      height: resolution.height,
+      codec: 'libx264',
+      effects: {
+        parallax: true,
+        glow: true,
+        zoom: true,
+        animation: true,
+        wiggle: false,
+        textOverlay: false,
+      },
+      transition: 'fade',
+      transitionDuration: 0.5,
+    },
+  };
+};
 
 export const api = {
   auth: {
-    login: async (credentials: any) => {
-      logger("POST", "/v1/auth/login", credentials);
-      await sleep(DELAY);
+    login: async (credentials: { email: string; password: string }) => {
+      const response = await request<any>('/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+
+      const data = response.data || {};
+      const user = mapUser(data.user);
+      const tokens = {
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      };
+
+      persistAuth(user, tokens);
+
       return {
         success: true,
         data: {
-          user: { id: "u_001", name: "John_Doe", email: credentials.email },
-          token: "fake_jwt_token_123",
+          user,
+          token: tokens.accessToken,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
         },
       };
     },
-    register: async (userData: any) => {
-      logger("POST", "/v1/auth/register", userData);
-      await sleep(DELAY);
+    register: async (userData: { name: string; email: string; password: string }) => {
+      const baseUsername = userData.name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+
+      const payload = {
+        email: userData.email,
+        password: userData.password,
+        username: baseUsername || `user_${Date.now()}`,
+        displayName: userData.name,
+      };
+
+      const response = await request<any>('/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = response.data || {};
+      const user = mapUser(data.user);
+      const tokens = {
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      };
+
+      persistAuth(user, tokens);
+
       return {
         success: true,
         data: {
-          user: { id: "u_001", name: userData.name, email: userData.email },
-          token: "fake_jwt_token_123",
+          user,
+          token: tokens.accessToken,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
         },
+      };
+    },
+    me: async () => {
+      const response = await request<any>('/v1/auth/me');
+      return {
+        success: true,
+        data: mapUser(response.data?.user),
       };
     },
     logout: async () => {
-      logger("POST", "/v1/auth/logout");
-      await sleep(300);
+      const refreshToken = getStoredAuth()?.state?.tokens?.refreshToken;
+      try {
+        if (refreshToken) {
+          await request('/v1/auth/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken }),
+          });
+        }
+      } finally {
+        clearAuth();
+      }
       return { success: true };
     },
   },
   projects: {
     list: async () => {
-      logger("GET", "/v1/projects");
-      await sleep(DELAY);
+      const response = await request<any>('/v1/projects');
       return {
         success: true,
-        data: [
-          {
-            id: "prj_001",
-            title: "Cyberpunk_Manga_Edit",
-            status: "completed",
-            lastUpdated: "2h ago",
-            duration: "0:45",
-            image: "/images/hero.png",
-          },
-          {
-            id: "prj_002",
-            title: "Samurai_Champloo_Vibe",
-            status: "rendering",
-            lastUpdated: "15m ago",
-            duration: "1:20",
-            image: "/images/hero.png",
-          },
-          {
-            id: "prj_003",
-            title: "Draft_Project_99",
-            status: "idle",
-            lastUpdated: "Yesterday",
-            duration: "0:30",
-          },
-          {
-            id: "prj_004",
-            title: "Glitch_Experiment_X",
-            status: "error",
-            lastUpdated: "3d ago",
-            duration: "0:15",
-            image: "/images/hero.png",
-          },
-        ],
+        data: (response.data?.projects || []).map(mapProject),
       };
     },
     get: async (id: string) => {
-      logger("GET", `/v1/projects/${id}`);
-      await sleep(DELAY);
+      const response = await request<any>(`/v1/projects/${id}`);
       return {
         success: true,
-        data: {
-          id,
-          title: "Cyberpunk_Manga_Edit",
-          status: "completed",
-          lastUpdated: "2h ago",
-        },
+        data: mapProject(response.data?.project),
       };
     },
-    create: async (projectData: any) => {
-      logger("POST", "/v1/projects", projectData);
-      await sleep(DELAY * 2);
+    create: async (projectData: { title: string; description?: string; aspectRatio?: string }) => {
+      const response = await request<any>('/v1/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectData),
+      });
       return {
         success: true,
-        data: {
-          id: `prj_${Math.floor(Math.random() * 1000)}`,
-          ...projectData,
-          status: "idle",
-        },
+        data: mapProject(response.data?.project),
       };
     },
-    update: async (id: string, updates: any) => {
-      logger("PATCH", `/v1/projects/${id}`, updates);
-      await sleep(500);
-      return { success: true, data: { id, ...updates } };
+    update: async (id: string, updates: { title?: string; description?: string; settings?: any }) => {
+      const response = await request<any>(`/v1/projects/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      return {
+        success: true,
+        data: mapProject(response.data?.project),
+      };
     },
     delete: async (id: string) => {
-      logger("DELETE", `/v1/projects/${id}`);
-      await sleep(500);
+      await request(`/v1/projects/${id}`, { method: 'DELETE' });
       return { success: true };
     },
   },
   assets: {
     upload: async (
       file: File,
-      type: "manga" | "audio",
+      type: 'manga' | 'audio',
       chapterInfo?: { number: number; title?: string },
+      projectId?: string,
     ) => {
-      logger("UPLOAD", `/v1/assets/upload/${type}`, {
-        name: file.name,
-        size: file.size,
-        ...chapterInfo,
+      if (!projectId) {
+        throw new Error('Project must exist before uploading assets');
+      }
+
+      const token = getAccessToken();
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('projectId', projectId);
+      if (chapterInfo?.number) {
+        formData.append('chapterNumber', String(chapterInfo.number));
+      }
+      if (chapterInfo?.title) {
+        formData.append('chapterTitle', chapterInfo.title);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/v1/upload/file/${type}`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData,
       });
-      // Simulate progress via console if we had a callback
-      await sleep(DELAY * 1.5);
+
+      const text = await response.text();
+      const body = text ? JSON.parse(text) : {};
+
+      if (!response.ok) {
+        throw new Error(body?.message || `Upload failed: ${response.status}`);
+      }
+
       return {
         success: true,
         data: {
-          id: `ast_${Math.floor(Math.random() * 1000)}`,
-          url: `/fake/url/${file.name}`,
-          ...(chapterInfo && {
-            chapterNumber: chapterInfo.number,
-            chapterTitle: chapterInfo.title,
-          }),
+          id: body.data?.id,
+          url: body.data?.fileUrl,
+          chapterNumber: body.data?.chapterNumber,
+          chapterTitle: body.data?.chapterTitle,
         },
       };
     },

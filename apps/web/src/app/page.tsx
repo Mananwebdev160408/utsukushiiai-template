@@ -65,9 +65,9 @@ function Navigation() {
             </Link>
             <Link
               className="font-mono text-sm font-bold hover:text-primary hover:underline decoration-2 underline-offset-4 decoration-primary uppercase"
-              href="#pricing"
+              href="#waitlist"
             >
-              Pricing
+              Waitlist
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-4">
@@ -108,7 +108,7 @@ function Hero() {
             </div>
             <h1 className="font-display text-6xl md:text-7xl lg:text-8xl leading-[0.9] tracking-tighter mb-8 text-white uppercase">
               Animate <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-white">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-white">
                 Manga
               </span>{" "}
               <br />
@@ -123,7 +123,7 @@ function Hero() {
                 href="/register"
                 className="font-display text-xl px-8 py-4 bg-primary text-black border-4 border-black shadow-neo hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all uppercase rounded-none text-center"
               >
-                Start Free Trial
+                Start Creating
               </Link>
               <button className="font-display text-xl px-8 py-4 bg-transparent text-white border-4 border-white hover:bg-white hover:text-black transition-colors uppercase flex items-center gap-2 justify-center rounded-none">
                 <span className="material-symbols-outlined">play_circle</span>{" "}
@@ -132,12 +132,12 @@ function Hero() {
             </div>
           </div>
           <div className="flex-1 relative w-full max-w-md mx-auto lg:mx-0">
-            <div className="relative aspect-[9/16] bg-surface-dark border-6 border-black shadow-neo group">
+            <div className="relative aspect-9/16 bg-surface-dark border-6 border-black shadow-neo group">
               <div
                 className="absolute inset-0 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500"
                 style={{ backgroundImage: "url('/images/hero.png')" }}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/40"></div>
               </div>
               <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
                 <div className="px-2 py-1 bg-black/80 text-primary font-mono text-xs border border-primary">
@@ -288,7 +288,7 @@ function StyleComparison() {
             </div>
           </div>
           <div className="lg:col-span-6 flex justify-center order-1 lg:order-2">
-            <div className="relative w-full max-w-[400px] aspect-[9/16] bg-surface-dark border-6 border-black shadow-[8px_8px_0px_0px_#FF4500]">
+            <div className="relative w-full max-w-[400px] aspect-9/16 bg-surface-dark border-6 border-black shadow-[8px_8px_0px_0px_#FF4500]">
               <img
                 alt="Style Preview"
                 className="w-full h-full object-cover grayscale brightness-50"
@@ -412,7 +412,7 @@ function ComparisonSlider() {
 function ChaosEngine() {
   return (
     <section className="py-24 bg-dark relative overflow-hidden" id="features">
-      <div className="absolute inset-0 bg-[linear-gradient(#1a1a1a_1px,transparent_1px),linear-gradient(90deg,#1a1a1a_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(#1a1a1a_1px,transparent_1px),linear-gradient(90deg,#1a1a1a_1px,transparent_1px)] bg-size-[40px_40px]"></div>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
           <h2 className="font-display text-4xl md:text-6xl text-white mb-4 uppercase">
@@ -531,7 +531,7 @@ function VibeCheck() {
 
 function VibeCard() {
   return (
-    <div className="flex-shrink-0 w-[300px] aspect-[9/16] bg-surface-dark border-4 border-white relative group shadow-neo-sm">
+    <div className="shrink-0 w-[300px] aspect-9/16 bg-surface-dark border-4 border-white relative group shadow-neo-sm">
       <img
         alt="Gallery item"
         className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-300"
@@ -803,11 +803,10 @@ function EarlyAccess() {
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex-1">
               <h2 className="font-display text-5xl md:text-6xl mb-4 leading-none uppercase">
-                Get Early Access
+                Join the Movement
               </h2>
               <p className="font-mono text-lg font-bold mb-6 border-l-4 border-black pl-4">
-                Join the waitlist. 500 free credits for early adopters. No
-                credit card required.
+                UtsukushiiAI is now Open Source. Join the waitlist for early access to our cloud-hosted chaos clusters.
               </p>
               <form className="flex flex-col sm:flex-row gap-3">
                 <input
@@ -869,8 +868,8 @@ function Footer() {
                 </Link>
               </li>
               <li>
-                <Link className="hover:text-primary transition-colors" href="#">
-                  Pricing
+                <Link className="hover:text-primary transition-colors" href="https://github.com/Mananwebdev160408/utsukushiiai-template">
+                  Github
                 </Link>
               </li>
             </ul>

@@ -115,7 +115,7 @@ class WebhookNotifier:
     """Sends HTTP webhooks to the API server on job status changes."""
 
     def __init__(self, api_url: str = None):
-        self.api_url = api_url or os.getenv("API_WEBHOOK_URL", "http://localhost:4000/api/webhooks/render")
+        self.api_url = api_url or os.getenv("API_WEBHOOK_URL", "http://localhost:4000/v1/webhooks/render")
 
     async def notify(self, project_id: str, status: str, data: Dict[str, Any] = None):
         try:

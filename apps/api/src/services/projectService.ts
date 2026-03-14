@@ -2,10 +2,12 @@ import { projectRepository } from "../repositories/projectRepository";
 import { panelRepository } from "../repositories/panelRepository";
 import { renderJobRepository } from "../repositories/renderJobRepository";
 import { NotFoundError, ForbiddenError } from "../errors";
+import { generateId } from "../utils";
 
 export class ProjectService {
   async createProject(userId: string, data: any) {
     return projectRepository.create({
+      _id: generateId("prj"),
       userId,
       ...data,
       status: "draft",

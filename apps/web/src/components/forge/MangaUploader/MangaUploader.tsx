@@ -16,8 +16,12 @@ import { cn } from "@/lib/utils/cn";
 import { api } from "@/lib/api/client";
 
 export function MangaUploader({
+  projectId,
+  ensureProject,
   onUploadComplete,
 }: {
+  projectId?: string | null;
+  ensureProject?: () => Promise<string | null>;
   onUploadComplete?: () => void;
 }) {
   const [isDragging, setIsDragging] = useState(false);
@@ -33,6 +37,11 @@ export function MangaUploader({
   >([]);
 
   const onUpload = async (file: File) => {
+    const activeProjectId = projectId || (await ensureProject?.());
+    if (!activeProjectId) {
+      throw new Error("Project initialization failed before manga upload");
+    }
+
     // Determine next chapter number
     const nextChapterNumber = files.length + 1;
 
@@ -52,7 +61,7 @@ export function MangaUploader({
       const res = await api.assets.upload(file, "manga", {
         number: nextChapterNumber,
         title: newFile.chapterTitle,
-      });
+      }, activeProjectId);
       if (res.success) {
         setFiles((prev) =>
           prev.map((f) =>
@@ -78,7 +87,7 @@ export function MangaUploader({
     setIsDragging(false);
     const droppedFiles = Array.from(e.dataTransfer.files);
     droppedFiles.forEach(onUpload);
-  }, []);
+  }, [files.length, projectId, ensureProject]);
 
   const handleManualUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

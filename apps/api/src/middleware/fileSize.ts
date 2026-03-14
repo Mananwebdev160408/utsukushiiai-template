@@ -14,7 +14,7 @@ export const checkFileSize = (
 ) => {
   // If we're handling direct uploads where the client sends the size
   const declaredSize = req.body?.size || req.query?.size;
-  const fileType = req.body?.type || req.query?.type || "other";
+  const fileType = req.body?.type || req.query?.type || req.params?.type || "other";
 
   // Check declared size for direct uploads (e.g. presigned URLs)
   if (declaredSize) {
@@ -37,6 +37,7 @@ export const checkFileSize = (
     // Assuming type could come from request body or fieldname
     const type =
       req.body.type ||
+      req.params?.type ||
       (req.file.fieldname.includes("audio") ? "audio" : "manga");
     const limit =
       UPLOAD_LIMITS[type as keyof typeof UPLOAD_LIMITS] || UPLOAD_LIMITS.other;

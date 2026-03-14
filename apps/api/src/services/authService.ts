@@ -7,6 +7,7 @@ import {
   generateTokens,
   verifyRefreshToken,
   TokenPayload,
+  generateId,
 } from "../utils";
 import { config } from "../config";
 
@@ -21,6 +22,7 @@ export class AuthService {
 
     const hashedPassword = await hashPassword(data.password);
     const user = await userRepository.create({
+      _id: generateId("usr"),
       ...data,
       password: hashedPassword,
     });
